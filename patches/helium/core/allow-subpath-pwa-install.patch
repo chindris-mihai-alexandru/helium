@@ -1,0 +1,60 @@
+--- a/chrome/browser/web_applications/commands/fetch_manifest_and_install_command.cc
++++ b/chrome/browser/web_applications/commands/fetch_manifest_and_install_command.cc
+@@ -450,6 +450,58 @@
+                              skip_page_favicons_on_initial_download_);
+   CHECK(opt_manifest->start_url.is_valid());
+   CHECK(opt_manifest->id.is_valid());
++
++  // Helium: Allow sub-path PWA installation (e.g., linkedin.com/learning
++  // as a separate app from linkedin.com). When the user explicitly creates
++  // a shortcut and the current URL differs from the manifest's start_url,
++  // override the manifest identity to create a distinct app.
++  if (install_surface_ == webapps::WebappInstallSource::MENU_CREATE_SHORTCUT) {
++    const GURL& current_url = web_contents()->GetLastCommittedURL();
++    if (current_url.is_valid() &&
++        url::IsSameOriginWith(current_url, opt_manifest->start_url) &&
++        current_url.path() != opt_manifest->start_url.path()) {
++      GURL app_url = current_url;
++      std::string path = current_url.path();
++      if (!path.empty() && path.back() != '/') {
++        size_t last_slash = path.rfind('/');
++        std::string last_segment =
++            last_slash == std::string::npos ? path : path.substr(last_slash + 1);
++        if (last_segment.find('.') == std::string::npos) {
++          path.push_back('/');
++          GURL::Replacements app_url_rep;
++          app_url_rep.SetPathStr(path);
++          app_url = current_url.ReplaceComponents(app_url_rep);
++        }
++      }
++
++      GURL app_id_url = app_url;
++      GURL::Replacements app_id_rep;
++      app_id_rep.ClearQuery();
++      app_id_rep.ClearRef();
++      app_id_url = app_id_url.ReplaceComponents(app_id_rep);
++
++      opt_manifest->start_url = app_url;
++      opt_manifest->id = app_id_url;
++      const std::u16string title = web_contents()->GetTitle();
++      if (!title.empty()) {
++        opt_manifest->name = title;
++        opt_manifest->short_name = title;
++      }
++
++      std::string scope_path = app_url.path();
++      if (scope_path.empty() || scope_path.back() != '/') {
++        size_t last_slash = scope_path.rfind('/');
++        if (last_slash != std::string::npos)
++          scope_path = scope_path.substr(0, last_slash + 1);
++      }
++      GURL::Replacements scope_rep;
++      scope_rep.SetPathStr(scope_path);
++      scope_rep.ClearQuery();
++      scope_rep.ClearRef();
++      opt_manifest->scope = app_url.ReplaceComponents(scope_rep);
++    }
++  }
++
+   opt_manifest_ = std::move(opt_manifest);
+   StartPreloadingScreenshots();
