@@ -131,6 +131,7 @@ helium/core/reenable-spellcheck-downloads.patch
 helium/core/prefer-https-by-default.patch
 helium/core/enable-tab-hover-cards.patch
 helium/core/memory-saving-by-default.patch
+helium/core/aggressive-memory-saving.patch
 helium/core/disable-history-clusters.patch
 helium/core/unbreak-chromium-link.patch
 helium/core/update-credits.patch
