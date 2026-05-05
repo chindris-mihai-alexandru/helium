@@ -1,8 +1,11 @@
 --- a/components/performance_manager/user_tuning/prefs.cc
 +++ b/components/performance_manager/user_tuning/prefs.cc
-@@ -27,4 +27,4 @@ void RegisterLocalStatePrefs(PrefRegistr
+@@ -27,7 +27,7 @@
        kMemorySaverModeState, static_cast<int>(MemorySaverModeState::kEnabled));
    registry->RegisterIntegerPref(
        kMemorySaverModeAggressiveness,
 -      static_cast<int>(MemorySaverModeAggressiveness::kMedium));
 +      static_cast<int>(MemorySaverModeAggressiveness::kAggressive));
+   registry->RegisterIntegerPref(
+       kBatterySaverModeState,
+       static_cast<int>(BatterySaverModeState::kEnabledBelowThreshold));
